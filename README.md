@@ -41,8 +41,8 @@ Update `src/main/resources/application.properties`:
 ```properties
 # Database Configuration
 spring.datasource.url=jdbc:mysql://localhost:3306/ecomdb?useSSL=false&serverTimezone=UTC
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+spring.datasource.username=${DB_USERNAME:your_username}
+spring.datasource.password=${DB_PASSWORD:your_password}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 # JPA Configuration
@@ -51,13 +51,31 @@ spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
 # JWT Configuration
-app.jwt.secret=dGhpc0lzQVZlcnlMb25nU2VjcmV0S2V5Rm9ySFM1MTJBbGdvcml0aG1UaGF0SXNBdExlYXN0NjRCeXRlc0xvbmdFbm91Z2hGb3JKV1Q=
+app.jwt.secret=${JWT_SECRET:your_base64_encoded_secret_key_here}
 app.jwt.expiration=86400000
 
 # Razorpay Configuration
-app.razorpay.key-id=your_razorpay_key_id
-app.razorpay.key-secret=your_razorpay_key_secret
+app.razorpay.key-id=${RAZORPAY_KEY_ID:your_razorpay_key_id}
+app.razorpay.key-secret=${RAZORPAY_KEY_SECRET:your_razorpay_key_secret}
 ```
+
+### 4. Environment Variables Setup
+Create a `.env` file for development (DO NOT commit to Git):
+
+```bash
+# Database Credentials
+DB_USERNAME=your_mysql_username
+DB_PASSWORD=your_mysql_password
+
+# JWT Secret (Generate a new one for production!)
+JWT_SECRET=your_base64_encoded_secret_key_here
+
+# Razorpay Credentials
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```
+
+⚠️ **Security Warning**: Never commit actual credentials to version control! Use environment variables in production.
 
 ### 4. Build and Run
 ```bash
@@ -349,6 +367,49 @@ curl -X POST http://localhost:8080/api/payments/verify \
   -d 'orderId=order_123&paymentId=pay_456&signature=abc789'
 ```
 
+## 🔒 Security Best Practices
+
+### **Production Deployment Security**
+
+1. **Environment Variables**
+   ```bash
+   # Use environment variables for all sensitive data
+   export JWT_SECRET="your_secure_base64_secret"
+   export DB_USERNAME="prod_db_user"
+   export DB_PASSWORD="secure_db_password"
+   export RAZORPAY_KEY_ID="prod_razorpay_key"
+   export RAZORPAY_KEY_SECRET="prod_razorpay_secret"
+   ```
+
+2. **Generate Secure JWT Secret**
+   ```bash
+   # Generate a new secure secret for production
+   openssl rand -base64 64
+   ```
+
+3. **Database Security**
+   - Use strong passwords
+   - Enable SSL connections
+   - Restrict database access to application server only
+
+4. **Admin Security**
+   - Change default admin credentials immediately
+   - Use strong passwords (minimum 12 characters)
+   - Enable two-factor authentication if possible
+
+5. **API Security**
+   - Use HTTPS in production
+   - Implement rate limiting
+   - Validate all input data
+   - Use CORS properly
+
+### **Development Security**
+
+- Never commit `.env` files to Git
+- Use different credentials for development and production
+- Regularly update dependencies
+- Review security logs
+
 ## 🏗️ Project Structure
 
 ```
@@ -420,6 +481,8 @@ src/main/java/com/ecommerce/backend/
 The application creates a default admin user on startup:
 - **Email:** admin@shop.com
 - **Password:** admin123
+
+⚠️ **Security Warning**: Change the default admin password immediately in production! Generate a secure password and update the DataInitializer.java or create users via the registration endpoint.
 
 ### Test Data
 Use the provided Postman collection for testing all endpoints.
